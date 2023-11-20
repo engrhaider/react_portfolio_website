@@ -21,12 +21,7 @@ const LandingSection = () => {
   const {isLoading, response, submit} = useSubmit();
   const { onOpen } = useAlertContext();
 
-  useEffect(() => {
-    if (response && response.type !== undefined) {
-      onOpen(response.type, response.message);
-    }
-  }, [response]);
-  const {getFieldProps, touched, errors, isValid, handleSubmit} = useFormik({
+  const {getFieldProps, resetForm, touched, errors, isValid, handleSubmit} = useFormik({
     initialValues: {
       firstName: '',
       email: '',
@@ -34,7 +29,7 @@ const LandingSection = () => {
       comment: ''
     },
     onSubmit: async (values, {resetForm}) => {
-      if (isValid) {
+      if (isValid && !isLoading) {
         submit('/contact-me', values);
       }
     },
@@ -42,9 +37,18 @@ const LandingSection = () => {
       firstName: Yup.string().required('Name is required'),
       email: Yup.string().email('Invalid email address').required('Email is required'),
       type: Yup.string().required('Type of enquiry is required'),
-      comment: Yup.string().required('Your message is required').min(20, 'Your message must be at least 20 characters'),
+      comment: Yup.string().required('Your message is required').min(25, 'Your message must be at least 25 characters'),
     }),
   });
+
+  useEffect(() => {
+    if (response && response.type !== undefined) {
+      onOpen(response.type, response.message);
+      if (response.type === "success") {
+        resetForm();
+      }
+    }
+  }, [response]);
 
   return (
     <FullScreenSection
@@ -100,7 +104,7 @@ const LandingSection = () => {
                 />
                 <FormErrorMessage>{errors.comment}</FormErrorMessage>
               </FormControl>
-              <Button type="submit" colorScheme="purple" width="full">
+              <Button type="submit" colorScheme="purple" width="full" isLoading={isLoading}>
                 Submit
               </Button>
             </VStack>
